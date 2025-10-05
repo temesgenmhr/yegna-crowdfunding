@@ -1,57 +1,87 @@
-# Sample Hardhat 3 Beta Project (`mocha` and `ethers`)
+## Getting Started
 
-This project showcases a Hardhat 3 Beta project using `mocha` for tests and the `ethers` library for Ethereum interactions.
+### Prerequisites
+- Node.js (v18+ recommended)
+- npm or yarn
 
-To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+### 1. Install Dependencies
 
-## Project Overview
+Install backend and frontend dependencies:
 
-This example project includes:
+```sh
+npm install
+cd frontend
+npm install
+```
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using `mocha` and ethers.js
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+### 2. Compile & Test Smart Contracts
 
-## Usage
+From the project root:
 
-### Running Tests
-
-To run all the tests in the project, execute the following command:
-
-```shell
+```sh
+npx hardhat compile
 npx hardhat test
 ```
 
-You can also selectively run the Solidity or `mocha` tests:
+### 3. Deploy Contracts (Local Network)
 
-```shell
-npx hardhat test solidity
-npx hardhat test mocha
+Start a local Hardhat node in one terminal:
+
+```sh
+npx hardhat node
 ```
 
-### Make a deployment to Sepolia
+In another terminal, deploy contracts:
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
-
-To run the deployment to a local chain:
-
-```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
+```sh
+npx hardhat run scripts/send-op-tx.ts --network localhost
 ```
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+### 4. Run the Frontend
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
+From the `frontend` folder:
 
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
-
-```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
+```sh
+npm run dev
 ```
 
-After setting the variable, you can run the deployment with the Sepolia network:
+The app will be available at [http://localhost:5173](http://localhost:5173) (default Vite port).
 
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
+---
+# Yegna Crowdfunding
+
+Yegna Crowdfunding is a decentralized crowdfunding platform built on Ethereum. It enables users to create fundraising campaigns, contribute ETH to campaigns, and manage funds transparently using smart contracts. The project features a full-stack dApp with a Solidity smart contract backend and a modern React/TypeScript frontend.
+
+## Features
+
+
+## Tech Stack
+
+**Smart Contract & Backend:**
+- Solidity (Ethereum smart contracts)
+- Hardhat (development, testing, deployment)
+- Ethers.js (blockchain interaction)
+
+**Frontend:**
+- React (TypeScript, Vite)
+- ethers.js (web3 integration)
+- Tailwind CSS (UI styling)
+- Radix UI, Lucide Icons, React Router
+
+**Testing:**
+- Mocha, Chai (unit tests)
+
+## Project Structure
+
 ```
+contracts/        # Solidity smart contracts
+frontend/         # React frontend app
+test/             # Smart contract tests (TypeScript)
+artifacts/        # Compiled contract artifacts
+scripts/          # Deployment and utility scripts
+ignition/         # Hardhat Ignition deployment modules
+types/            # TypeScript contract types
+```
+
+
+
