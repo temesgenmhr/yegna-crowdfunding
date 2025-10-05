@@ -1,0 +1,44 @@
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Build and dist output
+dist/
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/.turbo/
+
+# pnpm deploy output
+bundle/
+
+# Hardhat Build Artifacts
+artifacts/
+
+# Hardhat compilation (v2) support directory
+cache/
+
+# Typechain output
+types/
+
+# Hardhat coverage reports
+coverage/
+
+# IDE and OS files
+.DS_Store
+*.log
+*.env
+*.env.*
+*.local
+*.swp
+*.swo
+*.vscode/
+frontend/.env
+frontend/.env.*
+frontend/.DS_Store
+frontend/*.log
+frontend/.vscode/
+
+# Misc
+*.tsbuildinfo
+frontend/*.tsbuildinfo

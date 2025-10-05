@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-b25877475e3ef48c6e54e0cd4bb1f48d9eae32d5",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "userSourceNameMap": {
+    "contracts/CrowdFunding.sol": "project/contracts/CrowdFunding.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/CrowdFunding.sol": {
+        "content": "// SPDX-License-Identifier: UNLICENSED\r\npragma solidity ^0.8.28;\r\n\r\ncontract CrowdFunding {\r\n    struct Campaign {\r\n        address creator;\r\n        string title;\r\n        string description;\r\n        uint256 goal;\r\n        uint256 deadline;\r\n        uint256 amountRaised;\r\n        bool withdrawn;\r\n        mapping(address => uint256) contributions;\r\n        address[] contributors;\r\n    }\r\n\r\n    uint256 public campaignCount;\r\n    mapping(uint256 => Campaign) public campaigns;\r\n\r\n    event CampaignCreated(\r\n        uint256 indexed campaignId,\r\n        address indexed creator,\r\n        string title,\r\n        uint256 goal,\r\n        uint256 deadline\r\n    );\r\n\r\n    event ContributionMade(\r\n        uint256 indexed campaignId,\r\n        address indexed,\r\n        uint256 amount\r\n    );\r\n\r\n    event FundsWithdrawn(\r\n        uint256 indexed campaignId,\r\n        address indexed creator,\r\n        uint256 amount\r\n    );\r\n\r\n    event RefundIssued(\r\n        uint256 indexed campaignId,\r\n        address indexed contributor,\r\n        uint256 amount\r\n    );\r\n\r\n    function createCampaign(\r\n        string memory _title,\r\n        string memory _description,\r\n        uint256 _goal,\r\n        uint256 _durationInDays\r\n    ) external returns (uint256) {\r\n        require(_goal > 0, \"Goal must be greater than 0\");\r\n        require(_durationInDays > 0, \"Duration must be greater than 0\");\r\n\r\n        uint256 campaignId = campaignCount++;\r\n        Campaign storage newCampaign = campaigns[campaignId];\r\n\r\n        newCampaign.creator = msg.sender;\r\n        newCampaign.title = _title;\r\n        newCampaign.description = _description;\r\n        newCampaign.goal = _goal;\r\n        newCampaign.deadline = block.timestamp + (_durationInDays * 1 days);\r\n        newCampaign.amountRaised = 0;\r\n        newCampaign.withdrawn = false;\r\n\r\n        emit CampaignCreated(\r\n            campaignId,\r\n            msg.sender,\r\n            _title,\r\n            _goal,\r\n            newCampaign.deadline\r\n        );\r\n        return campaignId;\r\n    }\r\n\r\n    function contribute(uint256 _campaignId) external payable {\r\n        Campaign storage campaign = campaigns[_campaignId];\r\n\r\n        require(block.timestamp < campaign.deadline, \"Campaign has ended\");\r\n        require(msg.value > 0, \"Contribution must be greater than 0\");\r\n\r\n        if (campaign.contributions[msg.sender] == 0) {\r\n            campaign.contributors.push(msg.sender);\r\n        }\r\n        campaign.contributions[msg.sender] += msg.value;\r\n        campaign.amountRaised += msg.value;\r\n\r\n        emit ContributionMade(_campaignId, msg.sender, msg.value);\r\n    }\r\n\r\n    function withdrawFunds(uint256 _campaignId) external {\r\n        Campaign storage campaign = campaigns[_campaignId];\r\n        require(\r\n            msg.sender == campaign.creator,\r\n            \"Only the campaign creator can withdraw funds\"\r\n        );\r\n        require(\r\n            block.timestamp >= campaign.deadline,\r\n            \"Campaign is still ongoing\"\r\n        );\r\n        require(\r\n            campaign.amountRaised >= campaign.goal,\r\n            \"Funding goal not reached\"\r\n        );\r\n        require(!campaign.withdrawn, \"Funds have already been withdrawn\");\r\n\r\n        campaign.withdrawn = true;\r\n        uint256 amount = campaign.amountRaised;\r\n\r\n        (bool success, ) = (payable(campaign.creator).call{value: amount}(\"\"));\r\n        require(success, \"Transfer failed\");\r\n\r\n        emit FundsWithdrawn(_campaignId, campaign.creator, amount);\r\n    }\r\n\r\n    function refund(uint256 _campaignId) external {\r\n        Campaign storage campaign = campaigns[_campaignId];\r\n\r\n        require(\r\n            block.timestamp >= campaign.deadline,\r\n            \"Campaign is still ongoing\"\r\n        );\r\n        require(\r\n            campaign.amountRaised < campaign.goal,\r\n            \"Funding goal was reached; no refunds\"\r\n        );\r\n        uint256 contributedAmount = campaign.contributions[msg.sender];\r\n        require(contributedAmount > 0, \"No contributions to refund\");\r\n\r\n        campaign.contributions[msg.sender] = 0;\r\n        campaign.amountRaised -= contributedAmount;\r\n\r\n        (bool success, ) = (\r\n            payable(msg.sender).call{value: contributedAmount}(\"\")\r\n        );\r\n        require(success, \"Refund transfer failed\");\r\n\r\n        emit RefundIssued(_campaignId, msg.sender, contributedAmount);\r\n    }\r\n\r\n    function getCampaign(\r\n        uint256 _campaignId\r\n    )\r\n        external\r\n        view\r\n        returns (\r\n            address creator,\r\n            string memory title,\r\n            string memory description,\r\n            uint256 goal,\r\n            uint256 deadline,\r\n            uint256 amountRaised,\r\n            bool withdrawn\r\n        )\r\n    {\r\n        Campaign storage campaign = campaigns[_campaignId];\r\n        return (\r\n            campaign.creator,\r\n            campaign.title,\r\n            campaign.description,\r\n            campaign.goal,\r\n            campaign.deadline,\r\n            campaign.amountRaised,\r\n            campaign.withdrawn\r\n        );\r\n    }\r\n\r\n    function getContribution(uint256 _campaignId, address _contributor) external view returns(uint256) {\r\n        return campaigns[_campaignId].contributions[_contributor];\r\n    }\r\n\r\n    function getContributorCount(uint256 _campaignId) external view returns (uint256){\r\n        return campaigns[_campaignId].contributors.length;\r\n    }\r\n\r\n    function getCampainCount() external view returns (uint256) {\r\n        return campaignCount;\r\n    }\r\n}\r\n"
+      }
+    }
+  }
+}
