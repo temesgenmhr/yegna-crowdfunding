@@ -42,3 +42,4 @@ frontend/.vscode/
 # Misc
 *.tsbuildinfo
 frontend/*.tsbuildinfo
+docs/
